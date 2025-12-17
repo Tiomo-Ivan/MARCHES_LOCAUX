@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Catalogue{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-store"></i> Mon Catalogue</h1>
+
+<div class="mb-4">
+    <a href="{{ url_for('products.new_product') }}" class="btn btn-success"><i class="fas fa-plus"></i> Créer un produit</a>
+    <a href="{{ url_for('products.messages') }}" class="btn btn-info ms-2"><i class="fas fa-envelope"></i> Mes messages</a>
+</div>
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                {% if product.image %}
+                <div class="text-center mb-2">
+                    <img src="{{ url_for('static', filename='images/products/' + product.image) }}" class="img-fluid" style="max-height: 150px;" alt="Image du produit">
+                </div>
+                {% endif %}
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description or 'Aucune description' }}</p>
+                <p class="card-text"><strong>Prix :</strong> {{ product.price }} FCFA</p>
+                <p class="card-text"><small class="text-muted">Marché : {{ product.market.name }}</small></p>
+                <a href="{{ url_for('products.product_detail', id=product.id) }}" class="btn btn-primary"><i class="fas fa-eye"></i> Voir détails</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% include '_pagination.html' %}
+
+{% if not products and not pagination %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> Aucun produit dans votre catalogue.
+</div>
+{% endif %}
+{% endblock %}

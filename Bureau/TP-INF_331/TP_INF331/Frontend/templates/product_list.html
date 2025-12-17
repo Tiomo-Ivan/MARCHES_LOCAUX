@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Produits</title>
+</head>
+<body>
+    <h1>{% if user and user.role == 'seller' %}Mes Produits{% else %}Liste des Produits{% endif %}</h1>
+    {% if not (user and user.role == 'seller') %}
+    <form method="GET" action="{{ url_for('products.list_products') }}">
+        <input type="text" name="name" placeholder="Nom du produit">
+        <select name="market_id">
+            <option value="">Tous les marchés</option>
+            {% for market in markets %}
+            <option value="{{ market.id }}">{{ market.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="price_min" placeholder="Prix min" step="0.01">
+        <input type="number" name="price_max" placeholder="Prix max" step="0.01">
+        <button type="submit">Rechercher</button>
+    </form>
+    {% endif %}
+    {% if user and user.role == 'seller' %}
+    <a href="{{ url_for('products.new_product') }}">Créer un produit</a>
+    {% endif %}
+    <ul>
+        {% for product in products %}
+        <li><a href="{{ url_for('products.product_detail', id=product.id) }}">{{ product.name }}</a> - {{ product.price }} FCFA</li>
+        {% endfor %}
+    </ul>
+    {% if not products %}
+    <p>Aucun produit trouvé</p>
+    {% endif %}
+    <a href="{{ url_for('main.index') }}">Retour à l'accueil</a>
+</body>
+</html>

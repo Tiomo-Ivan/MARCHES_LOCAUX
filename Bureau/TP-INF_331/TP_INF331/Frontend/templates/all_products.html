@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des Produits{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-list"></i> Liste des Produits</h1>
+
+<!-- Formulaire de recherche -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('products.list_products') }}" class="row g-3">
+            <div class="col-md-3">
+                <input type="text" name="name" class="form-control" placeholder="Nom du produit">
+            </div>
+            <div class="col-md-3">
+                <select name="market_id" class="form-select">
+                    <option value="">Tous les marchés</option>
+                    {% for market in markets %}
+                    <option value="{{ market.id }}">{{ market.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="price_min" class="form-control" placeholder="Prix min" step="0.01">
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="price_max" class="form-control" placeholder="Prix max" step="0.01">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Rechercher</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des produits -->
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                {% if product.image %}
+                <div class="text-center mb-2">
+                    <img src="{{ url_for('static', filename='images/products/' + product.image) }}" class="img-fluid" style="max-height: 150px;" alt="Image du produit">
+                </div>
+                {% endif %}
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description or 'Aucune description' }}</p>
+                <p class="card-text"><strong>Prix :</strong> {{ product.price }} FCFA</p>
+                <p class="card-text"><small class="text-muted">Marché : {{ product.market.name }}</small></p>
+                <a href="{{ url_for('products.product_detail', id=product.id) }}" class="btn btn-primary"><i class="fas fa-eye"></i> Voir détails</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% include '_pagination.html' %}
+
+{% if not products and not pagination %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> Aucun produit trouvé.
+</div>
+{% endif %}
+{% endblock %}

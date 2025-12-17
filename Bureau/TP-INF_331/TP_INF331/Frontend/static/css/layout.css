@@ -1,0 +1,11 @@
+/* Styles de mise en page et responsive */
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+}

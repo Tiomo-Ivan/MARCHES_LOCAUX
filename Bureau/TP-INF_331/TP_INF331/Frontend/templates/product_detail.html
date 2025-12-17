@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Détail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">{{ product.name }}</h1>
+                {% if product.image %}
+                <img src="{{ url_for('static', filename='images/products/' + product.image) }}" class="img-fluid mb-3" alt="Image du produit">
+                {% endif %}
+                <p class="card-text">{{ product.description or 'Aucune description disponible.' }}</p>
+                <ul class="list-unstyled">
+                    <li><strong>Prix :</strong> {{ product.price }} FCFA</li>
+                    {% if product.quantity %}
+                    <li><strong>Quantité disponible :</strong> {{ product.quantity }}</li>
+                    {% endif %}
+                    <li><strong>Marché :</strong> {{ product.market.name }}</li>
+                    <li><strong>Vendeur :</strong> {{ product.seller.username }}</li>
+                    <li><strong>Créé le :</strong> {{ product.created_at.strftime('%d/%m/%Y à %H:%M') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Actions</h5>
+                {% if user and product.seller_id == user.id %}
+                <a href="{{ url_for('products.edit_product', id=product.id) }}" class="btn btn-warning mb-2"><i class="fas fa-edit"></i> Éditer</a>
+                <form action="{{ url_for('products.delete_product', id=product.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')"><i class="fas fa-trash"></i> Supprimer</button>
+                </form>
+                {% elif user and user.role == 'buyer' %}
+                <a href="{{ url_for('products.chat', id=product.id) }}" class="btn btn-success"><i class="fas fa-comments"></i> Chat en direct</a>
+                {% endif %}
+                <hr>
+                <a href="{% if user and user.role == 'seller' %}{{ url_for('products.my_products') }}{% else %}{{ url_for('products.list_products') }}{% endif %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour à la liste</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if product.market.latitude and product.market.longitude %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marker-alt"></i> Localisation du marché</h5>
+            </div>
+            <div class="card-body">
+                <div id="map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if product.market.latitude and product.market.longitude %}
+<script>
+    const map = L.map('map').setView([{{ product.market.latitude }}, {{ product.market.longitude }}], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([{{ product.market.latitude }}, {{ product.market.longitude }}])
+        .addTo(map)
+        .bindPopup('<b>{{ product.market.name }}</b><br>{{ product.market.city }}')
+        .openPopup();
+
+    // Get user location for itinerary
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            L.marker([userLat, userLng])
+                .addTo(map)
+                .bindPopup('Votre position')
+                .openPopup();
+
+            // Add routing control for itinerary
+            L.Routing.control({
+                waypoints: [
+                    L.latLng(userLat, userLng),
+                    L.latLng({{ product.market.latitude }}, {{ product.market.longitude }})
+                ],
+                routeWhileDragging: true,
+                language: 'fr'
+            }).addTo(map);
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

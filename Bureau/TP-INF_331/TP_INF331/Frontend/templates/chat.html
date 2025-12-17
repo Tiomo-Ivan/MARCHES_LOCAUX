@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Chat pour {{ product.name }}{% endblock %}
+ 
+{% block extra_head %}
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-comments"></i> Discussion sur le produit {{ product.name }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="messages" class="mb-3" style="height: 400px; overflow-y: scroll; border: 1px solid #dee2e6; padding: 10px; background: #f8f9fa;">
+                    {% for message in messages %}
+                    <div class="message {% if message.sender_id == user.id %}own{% else %}other{% endif %} mb-2">
+                        <strong>{{ message.sender.username }}:</strong> {{ message.content }}
+                        <small class="text-muted">({{ message.created_at.strftime('%H:%M') }})</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div id="typing" class="text-muted mb-2"></div>
+                <form id="messageForm" class="d-flex">
+                    <input type="text" id="messageInput" class="form-control me-2" placeholder="Tapez votre message..." autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Envoyer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Informations</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Produit :</strong> {{ product.name }}</p>
+                <p><strong>Vendeur :</strong> {{ seller.username }}</p>
+                <p><strong>Marché :</strong> {{ product.market.name }}</p>
+                {% if user.role == 'buyer' %}
+                <p><strong>Acheteur :</strong> {{ buyer.username }}</p>
+                {% endif %}
+                <a href="{{ url_for('products.product_detail', id=product.id) }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Retour au produit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block extra_js %}
+<script>
+    const socket = io();
+    const room = 'product_{{ product.id }}_{{ buyer.id }}_{{ seller.id }}';
+    const username = '{{ user.username }}';
+    const senderId = {{ user.id }};
+    const receiverId = {{ seller.id if user.role == 'buyer' else buyer.id }};
+    const productId = {{ product.id }};
+
+    socket.on('connect', function() {
+        socket.emit('join_room', { room: room, username: username });
+    });
+
+    socket.on('receive_message', function(data) {
+        const messagesDiv = document.getElementById('messages');
+        const messageElement = document.createElement('div');
+        const isOwnMessage = data.sender_id == senderId;
+        messageElement.className = `message ${isOwnMessage ? 'own' : 'other'} mb-2`;
+        messageElement.innerHTML = `
+            <strong>${data.sender}:</strong> ${data.content}
+            <small class="text-muted">(${new Date(data.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})</small>
+        `;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        if (!isOwnMessage) {
+            document.getElementById('notificationSound').play();
+        }
+    });
+
+    socket.on('user_typing', function(data) {
+        document.getElementById('typing').innerText = `${data.username} est en train d'écrire...`;
+    });
+
+    socket.on('stop_typing', function() {
+        document.getElementById('typing').innerText = '';
+    });
+
+    document.getElementById('messageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const input = document.getElementById('messageInput');
+        const content = input.value.trim();
+        if (content) {
+            socket.emit('send_message', {
+                room: room,
+                content: content,
+                username: username,
+                sender_id: senderId,
+                receiver_id: receiverId,
+                product_id: productId
+            });
+            input.value = '';
+        }
+    });
+
+    let typingTimeout;
+    document.getElementById('messageInput').addEventListener('input', function() {
+        clearTimeout(typingTimeout);
+        socket.emit('typing', { room: room, username: username });
+        typingTimeout = setTimeout(() => {
+            socket.emit('stop_typing', { room: room });
+        }, 1000);
+    });
+</script>
+{% endblock %}
+{% endblock %}

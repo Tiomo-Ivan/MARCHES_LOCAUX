@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Messages{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-envelope"></i> Mes Messages</h1>
+
+{% if messages %}
+<div class="row">
+    {% for message in messages %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ message.product.name }}</h5>
+                {% if user.role == 'seller' %}
+                <p class="card-text"><strong>De :</strong> {{ message.sender.username }}</p>
+                <a href="{{ url_for('products.chat', id=message.product_id) }}?buyer_id={{ message.sender_id }}" class="btn btn-primary"><i class="fas fa-comments"></i> Ouvrir le chat</a>
+                {% else %}
+                <p class="card-text"><strong>À :</strong> {{ message.receiver.username }}</p>
+                {% endif %}
+                <p class="card-text"><strong>Message :</strong> {{ message.content }}</p>
+                <p class="card-text"><small class="text-muted">{{ message.created_at.strftime('%d/%m/%Y à %H:%M') }}</small></p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> Aucun message.
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% if user.role == 'seller' %}{{ url_for('products.my_products') }}{% else %}{{ url_for('products.list_products') }}{% endif %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour</a>
+</div>
+{% endblock %}

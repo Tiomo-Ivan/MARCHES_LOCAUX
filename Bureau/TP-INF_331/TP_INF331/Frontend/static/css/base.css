@@ -1,0 +1,33 @@
+/* Styles de base et variables CSS pour l'application Marchés Locaux */
+
+/* Palette de couleurs pour thème marchés */
+:root {
+    --primary-color: #28a745; /* Vert pour fraîcheur */
+    --secondary-color: #ffc107; /* Jaune pour énergie */
+    --success-color: #20c997; /* Vert clair */
+    --danger-color: #dc3545;
+    --warning-color: #fd7e14; /* Orange */
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --accent-color: #e83e8c; /* Rose pour accent */
+    --background-color: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --navbar-bg: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+/* Corps de la page */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* En-têtes */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--dark-color);
+    margin-bottom: 1rem;
+}
