@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Page non trouvée - MARCHES LOCAUX{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="card">
+            <div class="card-body">
+                <i class="fas fa-exclamation-triangle fa-5x text-warning mb-4"></i>
+                <h1 class="card-title">404 - Page non trouvée</h1>
+                <p class="card-text">
+                    Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+                </p>
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Retour à l'accueil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ market.name }} - Détail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card"> 
+            <div class="card-body">
+                <h1 class="card-title">{{ market.name }}</h1>
+                <ul class="list-unstyled">
+                    <li><strong>Ville :</strong> {{ market.city }}</li>
+                    <li><strong>Description :</strong> {{ market.description or 'Aucune description disponible.' }}</li>
+                    {% if market.latitude %}
+                    <li><strong>Latitude :</strong> {{ market.latitude }}</li>
+                    {% endif %}
+                    {% if market.longitude %}
+                    <li><strong>Longitude :</strong> {{ market.longitude }}</li>
+                    {% endif %}
+                    <li><strong>Créé le :</strong> {{ market.created_at.strftime('%d/%m/%Y à %H:%M') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Actions</h5>
+                {% if user and user.role == 'admin' %}
+                <a href="{{ url_for('markets.edit_market', id=market.id) }}" class="btn btn-warning mb-2"><i class="fas fa-edit"></i> Éditer</a>
+                <form action="{{ url_for('markets.delete_market', id=market.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce marché ?')"><i class="fas fa-trash"></i> Supprimer</button>
+                </form>
+                {% endif %}
+                <hr>
+                <a href="{{ url_for('markets.list_markets') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour à la liste</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if market.latitude and market.longitude %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marker-alt"></i> Localisation du marché</h5>
+            </div>
+            <div class="card-body">
+                <div id="map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if market.latitude and market.longitude %}
+<script>
+    const map = L.map('map').setView([{{ market.latitude }}, {{ market.longitude }}], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([{{ market.latitude }}, {{ market.longitude }}])
+        .addTo(map)
+        .bindPopup('<b>{{ market.name }}</b><br>{{ market.city }}')
+        .openPopup();
+
+    // Get user location for itinerary
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            L.marker([userLat, userLng])
+                .addTo(map)
+                .bindPopup('Votre position')
+                .openPopup();
+
+            // Add routing control for itinerary
+            L.Routing.control({
+                waypoints: [
+                    L.latLng(userLat, userLng),
+                    L.latLng({{ market.latitude }}, {{ market.longitude }})
+                ],
+                routeWhileDragging: true,
+                language: 'fr'
+            }).addTo(map);
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Contacter le vendeur</title>
+</head>
+<body>
+    <h1>Contacter le vendeur pour {{ product.name }}</h1>
+    <form method="post">
+        <label for="content">Votre message :</label><br>
+        <textarea id="content" name="content" rows="5" cols="50" required></textarea><br>
+        <button type="submit">Envoyer</button>
+    </form>
+    <a href="{{ url_for('products.product_detail', id=product.id) }}">Annuler</a>
+</body>
+</html>

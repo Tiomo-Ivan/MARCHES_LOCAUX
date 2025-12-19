@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Application Flask{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5" style="background: linear-gradient(135deg, #28a745 0%, #20c997 50%, #ffc107 100%); color: white; border-radius: 1rem; margin-bottom: 2rem;">
+    <h1 class="display-4 fw-bold">Bienvenue sur MARCHES LOCAUX</h1>
+    <p class="lead fs-4">Découvrez et achetez des produits divers des marchés de Yaoundé sur notre plateforme moderne.</p>
+    <div class="mt-4">
+        {% if not session.user_id %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-3 px-4 py-2 shadow"><i class="fas fa-user-plus"></i> S'inscrire</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4 py-2"><i class="fas fa-sign-in-alt"></i> Se connecter</a>
+        {% else %}
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-light btn-lg px-4 py-2 shadow"><i class="fas fa-shopping-cart"></i> Explorer les produits</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row text-center mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-leaf fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Produits Frais</h5>
+                <p class="card-text">Découvrez une variété de produits locaux frais directement des marchés de Yaoundé.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Chat en Direct</h5>
+                <p class="card-text">Communiquez en temps réel avec les vendeurs pour vos achats.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-map-marker-alt fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Marchés Locaux</h5>
+                <p class="card-text">Explorez les différents marchés de Yaoundé et trouvez ce que vous cherchez.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

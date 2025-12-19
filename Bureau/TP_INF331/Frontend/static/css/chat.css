@@ -1,0 +1,28 @@
+/* Styles spécifiques au système de chat en temps réel */
+
+/* Messages du chat */
+#messages p {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.own {
+    background-color: #d1ecf1;
+    text-align: right;
+    margin-left: auto;
+    max-width: 70%;
+}
+
+.other {
+    background-color: #f8d7da;
+    text-align: left;
+    margin-right: auto;
+    max-width: 70%;
+}
+
+#typing {
+    font-style: italic;
+    color: var(--secondary-color);
+    margin-top: 0.5rem;
+}
