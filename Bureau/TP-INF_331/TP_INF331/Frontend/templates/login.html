@@ -1,30 +1,152 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion{% endblock %}
+{% block title %}Connexion - Marchés Locaux{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Se connecter</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Affichage des messages flash -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'danger' else 'warning' if category == 'warning' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                        <!-- Token CSRF pour la protection -->
+                        {{ csrf_token() }}
+
+                        <!-- Nom d'utilisateur -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nom d'utilisateur *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="username" 
+                                    name="username" 
+                                    placeholder="Entrez votre nom d'utilisateur"
+                                    required
+                                    autocomplete="username">
+                            </div>
+                        </div>
+
+                        <!-- Mot de passe -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mot de passe *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input 
+                                    type="password" 
+                                    class="form-control" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Entrez votre mot de passe"
+                                    required
+                                    autocomplete="current-password">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Se souvenir de moi -->
+                        <div class="mb-3 form-check">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                id="remember" 
+                                name="remember">
+                            <label class="form-check-label" for="remember">
+                                Se souvenir de moi
+                            </label>
+                        </div>
+
+                        <!-- Bouton de connexion -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <!-- Liens supplémentaires -->
+                    <div class="text-center">
+                        <p class="text-muted mb-2">
+                            <a href="#" class="text-decoration-none">Mot de passe oublié ?</a>
+                        </p>
+                        <p class="text-muted mb-0">
+                            Pas encore de compte ? 
+                            <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-bold">Inscrivez-vous ici</a>
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Nom d'utilisateur</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Mot de passe</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
-                </form>
-                <hr>
-                <p class="text-center">Pas encore de compte ? <a href="{{ url_for('auth.register') }}">S'inscrire</a></p>
+
+            <!-- Message d'information -->
+            <div class="alert alert-info mt-3" role="alert">
+                <small>
+                    <strong>Conseil de sécurité :</strong> Utilisez un mot de passe unique et complexe. Ne partagez jamais vos identifiants.
+                </small>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Fonction pour afficher/masquer le mot de passe
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+
+    // Validation du formulaire avant soumission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs !');
+            return false;
+        }
+    });
+
+    // Préremplir le nom d'utilisateur si disponible dans le localStorage
+    window.addEventListener('load', function() {
+        const savedUsername = localStorage.getItem('last_username');
+        if (savedUsername && document.getElementById('remember').checked) {
+            document.getElementById('username').value = savedUsername;
+        }
+    });
+
+    // Sauvegarder le nom d'utilisateur si "Se souvenir de moi" est coché
+    document.querySelector('form').addEventListener('submit', function() {
+        if (document.getElementById('remember').checked) {
+            localStorage.setItem('last_username', document.getElementById('username').value);
+        } else {
+            localStorage.removeItem('last_username');
+        }
+    });
+</script>
 {% endblock %}

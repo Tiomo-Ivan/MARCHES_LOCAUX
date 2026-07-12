@@ -1,41 +1,227 @@
 {% extends "base.html" %}
 
-{% block title %}Inscription{% endblock %}
+{% block title %}Inscription - Marchés Locaux{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-user-plus"></i> Inscription</h2>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Nom d'utilisateur</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Mot de passe</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Rôle</label>
-                        <select class="form-select" id="role" name="role" required>
-                            <option value="buyer">Acheteur</option>
-                            <option value="seller">Vendeur</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-success"><i class="fas fa-user-plus"></i> S'inscrire</button>
-                </form>
-                <hr>
-                <p class="text-center">Déjà un compte ? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Créer un compte</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Affichage des messages flash -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'danger' else 'warning' if category == 'warning' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                        <!-- Token CSRF pour la protection -->
+                        {{ csrf_token() }}
+
+                        <!-- Nom d'utilisateur -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nom d'utilisateur *</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="username" 
+                                name="username" 
+                                placeholder="Entre 3 et 20 caractères"
+                                minlength="3"
+                                maxlength="20"
+                                required
+                                pattern="^[a-zA-Z0-9_-]+$"
+                                title="Caractères autorisés : lettres, chiffres, tirets et underscores">
+                            <small class="form-text text-muted">3-20 caractères (lettres, chiffres, tirets, underscores)</small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Adresse email *</label>
+                            <input 
+                                type="email" 
+                                class="form-control" 
+                                id="email" 
+                                name="email" 
+                                placeholder="exemple@email.com"
+                                required>
+                            <small class="form-text text-muted">Nous ne partagerons jamais votre email</small>
+                        </div>
+
+                        <!-- Mot de passe -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mot de passe *</label>
+                            <div class="input-group">
+                                <input 
+                                    type="password" 
+                                    class="form-control" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Minimum 8 caractères"
+                                    minlength="8"
+                                    required
+                                    title="Le mot de passe doit contenir au minimum 8 caractères">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="passwordStrength" class="mt-2">
+                                <small id="strengthText" class="form-text text-muted">Force du mot de passe : <span id="strength"></span></small>
+                                <div class="progress" style="height: 5px;">
+                                    <div id="strengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confirmation du mot de passe -->
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">Confirmer le mot de passe *</label>
+                            <div class="input-group">
+                                <input 
+                                    type="password" 
+                                    class="form-control" 
+                                    id="password_confirm" 
+                                    name="password_confirm" 
+                                    placeholder="Répétez le mot de passe"
+                                    minlength="8"
+                                    required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordConfirm">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <small id="passwordMatchText" class="form-text d-none"></small>
+                        </div>
+
+                        <!-- Rôle -->
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Type de compte *</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Sélectionnez un type de compte</option>
+                                <option value="buyer">Acheteur</option>
+                                <option value="seller">Vendeur</option>
+                            </select>
+                        </div>
+
+                        <!-- Conditions d'utilisation -->
+                        <div class="mb-3 form-check">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                id="terms" 
+                                name="terms"
+                                required>
+                            <label class="form-check-label" for="terms">
+                                J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> *
+                            </label>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">S'inscrire</button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <!-- Lien vers la connexion -->
+                    <p class="text-center text-muted mb-0">
+                        Vous avez déjà un compte ? 
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Connectez-vous ici</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Fonction pour afficher/masquer le mot de passe
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+
+    document.getElementById('togglePasswordConfirm').addEventListener('click', function() {
+        const passwordConfirmInput = document.getElementById('password_confirm');
+        const type = passwordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordConfirmInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+
+    // Fonction pour vérifier la force du mot de passe
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[^a-zA-Z\d]/.test(password)) strength++;
+        
+        return strength;
+    }
+
+    // Mettre à jour la barre de force du mot de passe
+    document.getElementById('password').addEventListener('input', function() {
+        const strength = checkPasswordStrength(this.value);
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strength');
+        const strengthMap = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'];
+        const colorMap = ['danger', 'warning', 'info', 'success', 'success'];
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.className = 'progress-bar bg-' + colorMap[strength - 1];
+        strengthText.textContent = strengthMap[strength - 1] || 'Trop court';
+    });
+
+    // Vérifier la correspondance des mots de passe
+    function checkPasswordMatch() {
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+        const matchText = document.getElementById('passwordMatchText');
+        
+        if (passwordConfirm === '') return;
+        
+        if (password === passwordConfirm) {
+            matchText.textContent = '✓ Les mots de passe correspondent';
+            matchText.className = 'form-text text-success';
+            matchText.classList.remove('d-none');
+        } else {
+            matchText.textContent = '✗ Les mots de passe ne correspondent pas';
+            matchText.className = 'form-text text-danger';
+            matchText.classList.remove('d-none');
+        }
+    }
+
+    document.getElementById('password').addEventListener('input', checkPasswordMatch);
+    document.getElementById('password_confirm').addEventListener('input', checkPasswordMatch);
+
+    // Validation du formulaire avant soumission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+        
+        if (password !== passwordConfirm) {
+            e.preventDefault();
+            alert('Les mots de passe ne correspondent pas !');
+            return false;
+        }
+        
+        if (!document.getElementById('terms').checked) {
+            e.preventDefault();
+            alert('Vous devez accepter les conditions d\'utilisation');
+            return false;
+        }
+    });
+</script>
 {% endblock %}
