@@ -8,8 +8,9 @@ fonctionnalités de l'application.
 
 import logging
 import os
-from flask import Flask
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_socketio import SocketIO
+from flask_wtf.csrf import CSRFProtect
 from .extensions import db
 from .events import init_socketio_events
 from .blueprints.main import main
@@ -18,6 +19,7 @@ from .blueprints.markets import markets
 from .blueprints.products import products
 
 socketio = SocketIO(cors_allowed_origins="*")  # Autorise les connexions depuis n'importe quelle origine (à ajuster en production)
+csrf = CSRFProtect()
 
 def create_app():
     """
@@ -26,7 +28,7 @@ def create_app():
     Initialise Flask avec les dossiers de templates et statiques,
     charge la configuration, initialise les extensions et enregistre
     les blueprints. Crée également les tables de base de données.
-    Configure le système de logging.
+    Configure le système de logging et la protection CSRF.
 
     Returns:
         Flask: L'application Flask configurée.
@@ -54,8 +56,16 @@ def create_app():
 
     app.logger.info("Application Flask démarrée")
 
+    # Configuration de la sécurité
+    # La clé secrète doit être définie dans config.Config
+    if not app.config.get('SECRET_KEY'):
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+        app.logger.warning("SECRET_KEY non définie. Utilisation d'une clé par défaut (à changer en production)")
+    
+    # Initialisation des extensions
     db.init_app(app)
     socketio.init_app(app)
+    csrf.init_app(app)
     init_socketio_events(socketio)
 
     app.register_blueprint(main)
@@ -84,5 +94,12 @@ def create_app():
         app.logger.warning(f"Accès interdit: {request.url}")
         flash("Vous n'avez pas les permissions nécessaires.", "danger")
         return redirect(url_for('main.index'))
+
+    # Gestionnaire pour les erreurs CSRF
+    @app.errorhandler(400)
+    def bad_request(e):
+        app.logger.warning(f"Requête invalide (possiblement CSRF): {request.url}")
+        flash("Votre demande n'a pas pu être traitée. Veuillez réessayer.", "danger")
+        return redirect(url_for('main.index')), 400
 
     return app
