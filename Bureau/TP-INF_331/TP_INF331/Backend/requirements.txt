@@ -1,8 +1,33 @@
-Flask
-Flask-SQLAlchemy
-Flask-SocketIO
-python-dotenv
-pytest
-gunicorn
-psycopg2-binary
-eventlet
+# Dépendances du Backend - Marchés Locaux
+
+# Framework Web
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-SocketIO==5.3.4
+python-socketio==5.9.0
+
+# Protection et Sécurité
+Flask-WTF==1.1.1
+Werkzeug==2.3.7
+WTForms==3.0.1
+
+# Rate Limiting (Prévention des attaques par force brute)
+Flask-Limiter==3.5.0
+
+# Base de données
+SQLAlchemy==2.0.20
+
+# Gestion des variables d'environnement
+python-dotenv==1.0.0
+
+# Logging et monitoring
+python-json-logger==2.0.7
+
+# CORS
+Flask-CORS==4.0.0
+
+# Validation
+email-validator==2.0.0
+
+# Production
+gunicorn==21.2.0
